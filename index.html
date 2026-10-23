@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0e1218">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="一款修仙宗门经营挂机游戏。收徒、建阁、渡劫、魔劫。">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="青云志">
+<title>青云志 · 宗门纪事</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ================= 顶栏 ================= -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="sect-seal" id="sectSeal">宗</div>
+      <div class="brand-text">
+        <h1 id="sectName">青云宗</h1>
+        <div class="sect-level">
+          <span id="sectLevel">一级宗门</span>
+          <div class="rep-bar" title="名望">
+            <div class="rep-fill" id="repFill"></div>
+          </div>
+          <span class="rep-num" id="repNum">0 / 40</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="resources">
+      <div class="res" title="灵石：宗门唯一的流通货币，可在拍卖行换物资">
+        <span class="res-icon stone">◈</span>
+        <span class="res-val" id="resStones">0</span>
+        <span class="res-label">灵石</span>
+      </div>
+      <div class="res" title="门下弟子">
+        <span class="res-icon">人</span>
+        <span class="res-val" id="resDisciples">0</span>
+        <span class="res-label">弟子</span>
+      </div>
+      <div class="res" title="仓库中不同的物资种类">
+        <span class="res-icon">库</span>
+        <span class="res-val" id="resStock">0</span>
+        <span class="res-label">物资</span>
+      </div>
+      <div class="res" title="当前年数">
+        <span class="res-icon">年</span>
+        <span class="res-val" id="resWeek">1</span>
+        <span class="res-label">年</span>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <div class="speeds" id="speeds" title="游戏速度（空格暂停/继续）">
+        <button class="spbtn" data-speed="0" title="暂停">❚❚</button>
+        <button class="spbtn active" data-speed="1" title="一倍速">1×</button>
+        <button class="spbtn" data-speed="2" title="二倍速">2×</button>
+        <button class="spbtn" data-speed="4" title="四倍速">4×</button>
+      </div>
+      <button class="btn btn-ghost" id="btnMenu" title="菜单">⋯</button>
+    </div>
+  </header>
+
+  <!-- ================= 年进度 ================= -->
+  <div class="weekbar">
+    <div class="weekbar-fill" id="weekFill"></div>
+    <div class="weekbar-text">
+      <span id="weekLabel">第 1年</span>
+      <span id="speedLabel">1× 进行中</span>
+    </div>
+  </div>
+
+  <!-- ================= 导航 ================= -->
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="overview">山门</button>
+    <button class="tab" data-tab="disciples">弟子</button>
+    <button class="tab" data-tab="missions">任务</button>
+    <button class="tab" data-tab="warehouse">仓库</button>
+    <button class="tab" data-tab="auction">拍卖行</button>
+    <button class="tab" data-tab="recruit">收徒</button>
+    <button class="tab" data-tab="sect">宗门</button>
+    <button class="tab" data-tab="jianghu">江湖</button>
+    <button class="tab" data-tab="reports">年报</button>
+    <span class="tab-gap"></span>
+    <span class="hint-inline" id="tabHint"></span>
+  </nav>
+
+  <!-- ================= 主视图 ================= -->
+  <main id="view"></main>
+
+  <!-- ================= 底部状态条 ================= -->
+  <footer class="statusbar">
+    <span id="statusLeft">—</span>
+    <span id="statusRight"></span>
+  </footer>
+
+</div>
+
+<!-- 浮动提示 -->
+<div id="toast" class="toast"></div>
+
+<!-- 弹窗 -->
+<div id="modal" class="modal hidden">
+  <div class="modal-card" id="modalCard"></div>
+</div>
+
+<!-- ================= 脚本 ================= -->
+<script>
+/* 启动期错误兜底：任何脚本异常都直接显示在页面上，避免白屏无提示 */
+window.__errors = [];
+window.addEventListener('error', function (e) {
+  window.__errors.push(String(e.message));
+  var el = document.getElementById('bootError');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'bootError';
+    el.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:999;max-width:70vw;' +
+      'background:#2a1a1a;border:1px solid #6b2f2c;color:#f0b0ac;padding:10px 14px;' +
+      'border-radius:8px;font-size:12px;white-space:pre-wrap';
+    document.body.appendChild(el);
+  }
+  el.textContent = '脚本出错：' + e.message + '\n（刷新页面可重试；若反复出现请反馈）';
+});
+</script>
+<script src="js/core/util.js"></script>
+<script src="js/data/realm.js"></script>
+<script src="js/core/state.js"></script>
+<script src="js/data/terms.js"></script>
+<script src="js/data/names.js"></script>
+<script src="js/data/items.js"></script>
+<script src="js/data/regions.js"></script>
+<script src="js/data/missions.js"></script>
+<script src="js/data/npcs.js"></script>
+<script src="js/data/stories.js"></script>
+<script src="js/data/ranks.js"></script>
+<script src="js/data/buildings.js"></script>
+<script src="js/data/locations.js"></script>
+<script src="js/data/sagas.js"></script>
+<script src="js/data/worldevents.js"></script>
+<script src="js/systems/disciple.js"></script>
+<script src="js/systems/sect.js"></script>
+<script src="js/systems/auction.js"></script>
+<script src="js/systems/mission.js"></script>
+<script src="js/systems/warehouse.js"></script>
+<script src="js/systems/relations.js"></script>
+<script src="js/systems/npc.js"></script>
+<script src="js/systems/building.js"></script>
+<script src="js/systems/tournament.js"></script>
+<script src="js/systems/events.js"></script>
+<script src="js/systems/saga.js"></script>
+<script src="js/systems/worldevent.js"></script>
+<script src="js/systems/week.js"></script>
+<script src="js/core/time.js"></script>
+<script src="js/ui/render.js"></script>
+<script src="js/ui/panels.js"></script>
+<script src="js/main.js"></script>
+<script>
+// 离线缓存：只在浏览器里注册。
+// APK 内的资源本来就是本地的，注册 SW 反而会让更新后还读旧缓存，所以跳过。
+if ('serviceWorker' in navigator
+    && location.protocol.startsWith('http')
+    && location.hostname !== 'appassets.androidplatform.net') {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+</script>
+</body>
+</html>

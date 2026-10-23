@@ -1,0 +1,37 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.qingyun.zongmen'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.qingyun.zongmen"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            // 自己用就不折腾签名了；要发布的话在这里配 signingConfig
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    // 用 WebViewAssetLoader 从 https 源加载 assets——
+    // file:// 在多数 Android 上会被当作 opaque origin，localStorage 直接不可用，存档就没了
+    implementation 'androidx.webkit:webkit:1.11.0'
+}
+
+// 游戏是纯静态文件，直接打进 assets
+// 打包前先跑 tools/sync-assets.ps1 把文件复制过来
